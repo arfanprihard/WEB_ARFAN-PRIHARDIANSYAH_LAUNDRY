@@ -1,50 +1,72 @@
-import query from "../config/db.js";
-
-const fields = ["customer_name", "phone", "address"];
+import { prisma } from "../config/db.js";
 
 const getAllCustomers = async () => {
-  const result = await query("SELECT * FROM customer WHERE deleted_at IS NULL ORDER by id DESC LIMIT 5");
-  return result;
+  return await prisma.customer.findMany({
+    where: {
+      deleted_at: null,
+    },
+    orderBy: {
+      id: "desc",
+    },
+    take: 5,
+  });
 };
 
 const getCustomerById = async (id) => {
-  const result = await query("SELECT * FROM customer WHERE id = ? AND deleted_at IS NULL", [id]);
-  return result;
+  const customer = await prisma.customer.findFirst({
+    where: {
+      id: parseInt(id, 10),
+      deleted_at: null,
+    },
+  });
+  return customer ? [customer] : [];
 };
 
 const updateCustomerById = async (id, body) => {
-  const fieldsUpdate = fields.map((field) => `${field} = ?`);
-  const values = [
-    body.customer_name?.trim(),
-    body.phone?.trim() || null,
-    body.address?.trim() || null,
-    id,
-  ];
-  const result = await query(
-    `UPDATE customer SET ${fieldsUpdate.join(", ")} WHERE id = ?`,
-    values,
-  );
-  return result;
+  try {
+    const customer = await prisma.customer.updateMany({
+      where: {
+        id: parseInt(id, 10),
+        deleted_at: null,
+      },
+      data: {
+        customer_name: body.customer_name?.trim(),
+        phone: body.phone?.trim() || null,
+        address: body.address?.trim() || null,
+      },
+    });
+    return { affectedRows: customer.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 const createCustomer = async (body) => {
-  const fieldsCreate = fields;
-  const values = [
-    body.customer_name?.trim(),
-    body.phone?.trim() || null,
-    body.address?.trim() || null,
-  ];
-  const placeholders = fieldsCreate.map(() => "?");
-  const result = await query(
-    `INSERT INTO customer (${fieldsCreate.join(", ")}) VALUES (${placeholders.join(", ")})`,
-    values,
-  );
-  return result;
+  const customer = await prisma.customer.create({
+    data: {
+      customer_name: body.customer_name?.trim(),
+      phone: body.phone?.trim() || null,
+      address: body.address?.trim() || null,
+    },
+  });
+  return { insertId: customer.id };
 };
 
 const deleteCustomerById = async (id) => {
-  const result = await query("UPDATE customer SET deleted_at = NOW() WHERE id = ?", [id]);
-  return result;
+  try {
+    const customer = await prisma.customer.updateMany({
+      where: {
+        id: parseInt(id, 10),
+        deleted_at: null,
+      },
+      data: {
+        deleted_at: new Date(),
+      },
+    });
+    return { affectedRows: customer.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 export default {
@@ -54,3 +76,4 @@ export default {
   deleteCustomerById,
   getCustomerById,
 };
+

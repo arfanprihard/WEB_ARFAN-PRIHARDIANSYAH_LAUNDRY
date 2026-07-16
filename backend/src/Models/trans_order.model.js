@@ -1,64 +1,116 @@
-import query from "../config/db.js";
-
-const fields = [
-  "id_customer",
-  "order_code",
-  "order_date",
-  "order_qty",
-  "order_total",
-  "order_change",
-  "total",
-  "payment_status",
-];
+import { prisma } from "../config/db.js";
 
 const getAllOrders = async () => {
-  const result = await query(`
-    SELECT o.*, c.customer_name,
-           CASE WHEN p.id IS NOT NULL THEN 1 ELSE 0 END AS order_status,
-           GROUP_CONCAT(s.service_name SEPARATOR ', ') AS service_names
-    FROM trans_order o
-    LEFT JOIN customer c ON o.id_customer = c.id
-    LEFT JOIN trans_laundry_pickup p ON o.id = p.id_order
-    LEFT JOIN trans_order_detail od ON o.id = od.id_order
-    LEFT JOIN type_of_service s ON od.id_service = s.id
-    WHERE o.deleted_at IS NULL
-    GROUP BY o.id
-    ORDER BY o.id DESC
-  `);
-  return result;
+  const orders = await prisma.transOrder.findMany({
+    where: {
+      deleted_at: null,
+    },
+    include: {
+      customer: true,
+      pickups: true,
+      details: {
+        include: {
+          service: true,
+        },
+      },
+    },
+    orderBy: {
+      id: "desc",
+    },
+  });
+
+  return orders.map((o) => {
+    const serviceNames = o.details
+      .map((d) => d.service?.service_name)
+      .filter(Boolean)
+      .join(", ");
+
+    return {
+      id: o.id,
+      id_customer: o.id_customer,
+      order_code: o.order_code,
+      order_date: o.order_date,
+      order_qty: o.order_qty,
+      order_total: o.order_total,
+      created_at: o.created_at,
+      updated_at: o.updated_at,
+      deleted_at: o.deleted_at,
+      order_change: o.order_change,
+      total: o.total,
+      payment_status: o.payment_status,
+      customer_name: o.customer?.customer_name,
+      order_status: o.pickups.length > 0 ? 1 : 0,
+      service_names: serviceNames || null,
+    };
+  });
 };
 
 const getOrderById = async (id) => {
-  const result = await query(`
-    SELECT o.*, c.customer_name,
-           CASE WHEN p.id IS NOT NULL THEN 1 ELSE 0 END AS order_status,
-           GROUP_CONCAT(s.service_name SEPARATOR ', ') AS service_names
-    FROM trans_order o
-    LEFT JOIN customer c ON o.id_customer = c.id
-    LEFT JOIN trans_laundry_pickup p ON o.id = p.id_order
-    LEFT JOIN trans_order_detail od ON o.id = od.id_order
-    LEFT JOIN type_of_service s ON od.id_service = s.id
-    WHERE o.id = ? AND o.deleted_at IS NULL
-    GROUP BY o.id
-  `, [id]);
-  return result;
+  const o = await prisma.transOrder.findFirst({
+    where: {
+      id: parseInt(id, 10),
+      deleted_at: null,
+    },
+    include: {
+      customer: true,
+      pickups: true,
+      details: {
+        include: {
+          service: true,
+        },
+      },
+    },
+  });
+
+  if (!o) return [];
+
+  const serviceNames = o.details
+    .map((d) => d.service?.service_name)
+    .filter(Boolean)
+    .join(", ");
+
+  return [{
+    id: o.id,
+    id_customer: o.id_customer,
+    order_code: o.order_code,
+    order_date: o.order_date,
+    order_qty: o.order_qty,
+    order_total: o.order_total,
+    created_at: o.created_at,
+    updated_at: o.updated_at,
+    deleted_at: o.deleted_at,
+    order_change: o.order_change,
+    total: o.total,
+    payment_status: o.payment_status,
+    customer_name: o.customer?.customer_name,
+    order_status: o.pickups.length > 0 ? 1 : 0,
+    service_names: serviceNames || null,
+  }];
 };
 
 const createOrder = async (body) => {
-  const orderDate = body.order_date || new Date().toISOString().slice(0, 10);
-  const dateStr = orderDate.replace(/-/g, "");
+  const orderDateStr = body.order_date || new Date().toISOString().slice(0, 10);
+  const orderDateVal = new Date(orderDateStr);
+  const dateStr = orderDateStr.replace(/-/g, "");
   const prefix = `LAUNDRY-${dateStr}-`;
 
-  // Find the last order code for this day to increment it sequentially
-  const queryResult = await query(
-    `SELECT order_code FROM trans_order WHERE order_code LIKE ? ORDER BY order_code DESC LIMIT 1`,
-    [`${prefix}%`]
-  );
+  const lastOrder = await prisma.transOrder.findFirst({
+    where: {
+      order_code: {
+        startsWith: prefix,
+      },
+    },
+    orderBy: {
+      order_code: "desc",
+    },
+    select: {
+      order_code: true,
+    },
+  });
 
   let nextNum = 1;
-  if (queryResult && queryResult.length > 0) {
-    const lastCode = queryResult[0].order_code;
-    const parts = lastCode.split("-");
+  if (lastOrder && lastOrder.order_code) {
+    const parts = lastOrder.order_code.split("-");
     const lastNum = parseInt(parts[parts.length - 1], 10);
     if (!isNaN(lastNum)) {
       nextNum = lastNum + 1;
@@ -66,52 +118,64 @@ const createOrder = async (body) => {
   }
   const generatedOrderCode = `${prefix}${String(nextNum).padStart(4, "0")}`;
 
-  const values = [
-    body.id_customer,
-    generatedOrderCode,
-    orderDate,
-    body.order_qty,
-    body.order_total,
-    body.order_change || 0,
-    body.total || 0,
-    body.payment_status || "Lunas",
-  ];
+  const order = await prisma.transOrder.create({
+    data: {
+      id_customer: parseInt(body.id_customer, 10),
+      order_code: generatedOrderCode,
+      order_date: orderDateVal,
+      order_qty: parseInt(body.order_qty, 10),
+      order_total: body.order_total,
+      order_change: body.order_change || 0,
+      total: body.total || 0,
+      payment_status: body.payment_status || "Lunas",
+    },
+  });
 
-  const placeholders = fields.map(() => "?");
-  const result = await query(
-    `INSERT INTO trans_order (${fields.join(", ")}) VALUES (${placeholders.join(", ")})`,
-    values
-  );
-
-  // Attach the generated order code to the returned result so the controller can send it back
-  result.order_code = generatedOrderCode;
-  return result;
+  return {
+    insertId: order.id,
+    order_code: generatedOrderCode,
+  };
 };
 
 const updateOrderById = async (id, body) => {
-  const fieldsUpdate = fields.map((field) => `${field} = ?`);
-  const values = [
-    body.id_customer,
-    body.order_code?.trim(),
-    body.order_date || new Date().toISOString().slice(0, 10),
-    body.order_qty,
-    body.order_total,
-    body.order_change || 0,
-    body.total || 0,
-    body.payment_status || "Lunas",
-    id,
-  ];
-
-  const result = await query(
-    `UPDATE trans_order SET ${fieldsUpdate.join(", ")} WHERE id = ?`,
-    values
-  );
-  return result;
+  try {
+    const orderDateStr = body.order_date || new Date().toISOString().slice(0, 10);
+    const orderDateVal = new Date(orderDateStr);
+    const result = await prisma.transOrder.updateMany({
+      where: {
+        id: parseInt(id, 10),
+      },
+      data: {
+        id_customer: parseInt(body.id_customer, 10),
+        order_code: body.order_code?.trim(),
+        order_date: orderDateVal,
+        order_qty: parseInt(body.order_qty, 10),
+        order_total: body.order_total,
+        order_change: body.order_change || 0,
+        total: body.total || 0,
+        payment_status: body.payment_status || "Lunas",
+      },
+    });
+    return { affectedRows: result.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 const deleteOrderById = async (id) => {
-  const result = await query("UPDATE trans_order SET deleted_at = NOW() WHERE id = ?", [id]);
-  return result;
+  try {
+    const result = await prisma.transOrder.updateMany({
+      where: {
+        id: parseInt(id, 10),
+      },
+      data: {
+        deleted_at: new Date(),
+      },
+    });
+    return { affectedRows: result.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 export default {
@@ -121,3 +185,4 @@ export default {
   updateOrderById,
   deleteOrderById,
 };
+

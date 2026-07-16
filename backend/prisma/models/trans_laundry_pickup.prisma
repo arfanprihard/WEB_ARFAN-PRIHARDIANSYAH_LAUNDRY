@@ -1,0 +1,15 @@
+model TransLaundryPickup {
+  id          Int        @id @default(autoincrement())
+  id_order    Int
+  id_customer Int
+  pickup_date DateTime?  @db.Date
+  notes       String?    @db.Text
+  created_at  DateTime?  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime?  @default(now()) @db.Timestamp(0)
+  customer    Customer   @relation(fields: [id_customer], references: [id], map: "fk_pickup_customer")
+  order       TransOrder @relation(fields: [id_order], references: [id], onDelete: Cascade, map: "fk_pickup_order")
+
+  @@index([id_customer], map: "fk_pickup_customer")
+  @@index([id_order], map: "fk_pickup_order")
+  @@map("trans_laundry_pickup")
+}

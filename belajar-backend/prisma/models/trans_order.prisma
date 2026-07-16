@@ -1,0 +1,4 @@
+model TransOrder {
+    id         Int    @id @default(autoincrement())
+    order_code String @db.VarChar(50)
+}

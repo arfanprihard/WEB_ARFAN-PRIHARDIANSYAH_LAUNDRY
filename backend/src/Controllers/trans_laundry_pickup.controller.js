@@ -1,6 +1,6 @@
 import trans_laundry_pickupModel from "../Models/trans_laundry_pickup.model.js";
 import { sendError, sendSuccess } from "../Utils/response.helper.js";
-import query from "../config/db.js";
+import { prisma } from "../config/db.js";
 
 const getAllPickups = async (req, res) => {
   try {
@@ -44,12 +44,16 @@ const createPickup = async (req, res) => {
 
     // If payment details are provided at pickup, update the order's payment info
     if (body.amount_paid !== undefined && body.amount_paid !== null) {
-      await query(
-        `UPDATE trans_order 
-         SET total = ?, order_change = ?, payment_status = 'Lunas' 
-         WHERE id = ?`,
-        [body.amount_paid, body.order_change || 0, body.id_order]
-      );
+      await prisma.transOrder.update({
+        where: {
+          id: parseInt(body.id_order, 10),
+        },
+        data: {
+          total: body.amount_paid,
+          order_change: body.order_change || 0,
+          payment_status: "Lunas",
+        },
+      });
     }
 
     return sendSuccess(res, "Pickup created successfully.", result, 201);

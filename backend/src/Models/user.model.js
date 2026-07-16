@@ -1,68 +1,91 @@
-import query from "../config/db.js";
-
-const fields = ["id_level", "name", "email", "password"];
+import { prisma } from "../config/db.js";
 
 const getAllUsers = async () => {
-  const result = await query(`
-    SELECT u.id, u.id_level, u.name, u.email, u.created_at, u.updated_at, l.level_name 
-    FROM user u
-    LEFT JOIN level l ON u.id_level = l.id
-    ORDER BY u.id DESC
-  `);
-  return result;
+  const users = await prisma.user.findMany({
+    include: {
+      level: true,
+    },
+    orderBy: {
+      id: "desc",
+    },
+  });
+  return users.map((u) => ({
+    id: u.id,
+    id_level: u.id_level,
+    name: u.name,
+    email: u.email,
+    created_at: u.created_at,
+    updated_at: u.updated_at,
+    level_name: u.level?.level_name,
+  }));
 };
 
 const getUserById = async (id) => {
-  const result = await query(`
-    SELECT u.id, u.id_level, u.name, u.email, u.created_at, u.updated_at, l.level_name 
-    FROM user u
-    LEFT JOIN level l ON u.id_level = l.id
-    WHERE u.id = ?
-  `, [id]);
-  return result;
+  const u = await prisma.user.findFirst({
+    where: {
+      id: parseInt(id, 10),
+    },
+    include: {
+      level: true,
+    },
+  });
+  if (!u) return [];
+  return [{
+    id: u.id,
+    id_level: u.id_level,
+    name: u.name,
+    email: u.email,
+    created_at: u.created_at,
+    updated_at: u.updated_at,
+    level_name: u.level?.level_name,
+  }];
 };
 
 const createUser = async (body) => {
-  const values = [
-    body.id_level,
-    body.name?.trim(),
-    body.email?.trim(),
-    body.password,
-  ];
-
-  const placeholders = fields.map(() => "?");
-  const result = await query(
-    `INSERT INTO user (${fields.join(", ")}) VALUES (${placeholders.join(", ")})`,
-    values
-  );
-  return result;
+  const user = await prisma.user.create({
+    data: {
+      id_level: parseInt(body.id_level, 10),
+      name: body.name?.trim(),
+      email: body.email?.trim(),
+      password: body.password,
+    },
+  });
+  return { insertId: user.id };
 };
 
 const updateUserById = async (id, body) => {
-  const updateFields = ["id_level = ?", "name = ?", "email = ?"];
-  const values = [
-    body.id_level,
-    body.name?.trim(),
-    body.email?.trim(),
-  ];
-
-  if (body.password !== undefined && body.password !== null && String(body.password).trim() !== "") {
-    updateFields.push("password = ?");
-    values.push(body.password);
+  try {
+    const updateData = {
+      id_level: parseInt(body.id_level, 10),
+      name: body.name?.trim(),
+      email: body.email?.trim(),
+    };
+    if (body.password !== undefined && body.password !== null && String(body.password).trim() !== "") {
+      updateData.password = body.password;
+    }
+    const result = await prisma.user.updateMany({
+      where: {
+        id: parseInt(id, 10),
+      },
+      data: updateData,
+    });
+    return { affectedRows: result.count };
+  } catch (error) {
+    return { affectedRows: 0 };
   }
-
-  values.push(id);
-
-  const result = await query(
-    `UPDATE user SET ${updateFields.join(", ")} WHERE id = ?`,
-    values
-  );
-  return result;
 };
 
 const deleteUserById = async (id) => {
-  const result = await query("DELETE FROM user WHERE id = ?", [id]);
-  return result;
+  try {
+    const result = await prisma.user.deleteMany({
+      where: {
+        id: parseInt(id, 10),
+      },
+    });
+    return { affectedRows: result.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 export default {
@@ -72,3 +95,4 @@ export default {
   updateUserById,
   deleteUserById,
 };
+

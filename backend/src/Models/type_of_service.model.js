@@ -1,50 +1,68 @@
-import query from "../config/db.js";
-
-const fields = ["service_name", "price", "description"];
+import { prisma } from "../config/db.js";
 
 const getAllTypeOfServices = async () => {
-  const result = await query(`SELECT * FROM type_of_service WHERE deleted_at IS NULL`);
-  return result;
+  return await prisma.typeOfService.findMany({
+    where: {
+      deleted_at: null,
+    },
+  });
 };
 
 const getTypeOfServiceById = async (id) => {
-  const result = await query(`SELECT * FROM type_of_service WHERE id = ? AND deleted_at IS NULL`, [
-    id,
-  ]);
-  return result;
+  const service = await prisma.typeOfService.findFirst({
+    where: {
+      id: parseInt(id, 10),
+      deleted_at: null,
+    },
+  });
+  return service ? [service] : [];
 };
 
 const createTypeOfService = async (body) => {
-  const values = [
-    body.service_name?.trim(),
-    body.price?.trim(),
-    body.description?.trim() || null,
-  ];
-  const result = await query(
-    `INSERT INTO type_of_service (${fields.join(", ")}) VALUES (? , ? , ?)`,
-    values,
-  );
-  return result;
+  const service = await prisma.typeOfService.create({
+    data: {
+      service_name: body.service_name?.trim(),
+      price: body.price,
+      description: body.description?.trim() || null,
+    },
+  });
+  return { insertId: service.id };
 };
 
 const updateTypeOfServiceById = async (id, body) => {
-  const fieldsUpdate = fields.map((field) => `${field} = ?`);
-  const values = [
-    body.service_name?.trim(),
-    body.price?.trim(),
-    body.description?.trim() || null,
-    id,
-  ];
-  const result = await query(
-    `UPDATE type_of_service SET ${fieldsUpdate.join(", ")} WHERE id = ?`,
-    values,
-  );
-  return result;
+  try {
+    const service = await prisma.typeOfService.updateMany({
+      where: {
+        id: parseInt(id, 10),
+        deleted_at: null,
+      },
+      data: {
+        service_name: body.service_name?.trim(),
+        price: body.price,
+        description: body.description?.trim() || null,
+      },
+    });
+    return { affectedRows: service.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 const deleteTypeOfServiceById = async (id) => {
-  const result = await query(`UPDATE type_of_service SET deleted_at = NOW() WHERE id = ?`, [id]);
-  return result;
+  try {
+    const service = await prisma.typeOfService.updateMany({
+      where: {
+        id: parseInt(id, 10),
+        deleted_at: null,
+      },
+      data: {
+        deleted_at: new Date(),
+      },
+    });
+    return { affectedRows: service.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 export default {
@@ -54,3 +72,4 @@ export default {
   updateTypeOfServiceById,
   deleteTypeOfServiceById,
 };
+

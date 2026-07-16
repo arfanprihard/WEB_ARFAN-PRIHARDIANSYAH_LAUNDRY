@@ -1,28 +1,20 @@
-import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+import { PrismaClient } from "@prisma/client";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+
 dotenv.config();
 
-const dbPool = mysql.createPool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-  port: process.env.DB_PORT,
+// Initialize Prisma client with MariaDB driver adapter
+const adapter = new PrismaMariaDb({
+  host: process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT || "3306", 10),
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_DATABASE || "db_laundry",
+  connectionLimit: 10,
 });
+const prisma = new PrismaClient({ adapter });
 
-dbPool
-  .getConnection()
-  .then((connection) => {
-    console.log("Berhasil terhubung ke database");
-    connection.release();
-  })
-  .catch((err) => {
-    console.error("Gagal konek ke database, Error: " + err.message);
-  });
+export { prisma };
 
-const query = async (sql, params = []) => {
-  const [result] = await dbPool.execute(sql, params);
-  return result;
-};
 
-export default query;

@@ -115,31 +115,6 @@ const Dashboard = () => {
           )}
         </div>
       )}
-
-      {/* Guide Cards */}
-      <div className="mt-8 bg-background p-6 rounded-lg shadow-sm border border-border">
-        <h3 className="text-lg font-bold text-foreground mb-4">Panduan Cepat Akses Peran:</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 bg-muted rounded-md border border-border">
-            <h4 className="font-bold text-foreground text-sm">Super Admin / Administrator</h4>
-            <p className="text-xs text-muted-foreground mt-2">
-              Berwenang mengelola data master Pelanggan, User, dan Jenis Layanan beserta harganya. Dapat menambah user dengan level Operator atau Pimpinan.
-            </p>
-          </div>
-          <div className="p-4 bg-muted rounded-md border border-border">
-            <h4 className="font-bold text-foreground text-sm">Operator</h4>
-            <p className="text-xs text-muted-foreground mt-2">
-              Bertanggung jawab menginput Pelanggan baru, mencatat Transaksi Laundry masuk, menghitung subtotal, dan memproses transaksi pengambilan baju (pickup).
-            </p>
-          </div>
-          <div className="p-4 bg-muted rounded-md border border-border">
-            <h4 className="font-bold text-foreground text-sm">Pimpinan</h4>
-            <p className="text-xs text-muted-foreground mt-2">
-              Fokus pada pemantauan performa bisnis melalui Laporan Penjualan (omset dan total volume laundry) untuk keperluan keputusan manajemen.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

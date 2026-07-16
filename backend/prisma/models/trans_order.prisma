@@ -1,0 +1,20 @@
+model TransOrder {
+  id             Int                  @id @default(autoincrement())
+  id_customer    Int
+  order_code     String?              @unique(map: "order_code") @db.VarChar(50)
+  order_date     DateTime?            @db.Date
+  order_qty      Int?
+  order_total    Decimal?             @db.Decimal(10, 2)
+  created_at     DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at     DateTime?            @default(now()) @db.Timestamp(0)
+  deleted_at     DateTime?            @db.Timestamp(0)
+  order_change   Decimal?             @db.Decimal(10, 2)
+  total          Decimal?             @db.Decimal(10, 2)
+  payment_status String               @default("Lunas") @db.VarChar(20)
+  pickups        TransLaundryPickup[]
+  customer       Customer             @relation(fields: [id_customer], references: [id], map: "fk_order_customer")
+  details        TransOrderDetail[]
+
+  @@index([id_customer], map: "fk_order_customer")
+  @@map("trans_order")
+}

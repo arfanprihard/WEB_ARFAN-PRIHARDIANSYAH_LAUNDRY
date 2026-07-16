@@ -1,33 +1,67 @@
-import query from "../config/db.js";
+import { prisma } from "../config/db.js";
 
 const getLevelById = async (id) => {
-  const result = await query(`SELECT * FROM level WHERE id = ? AND deleted_at IS NULL`, [id]);
-  return result;
+  const level = await prisma.level.findFirst({
+    where: {
+      id: parseInt(id, 10),
+      deleted_at: null,
+    },
+  });
+  return level ? [level] : [];
 };
 
 const getAllLevels = async () => {
-  const result = await query(`SELECT * FROM level WHERE deleted_at IS NULL ORDER BY id DESC`);
-  return result;
+  return await prisma.level.findMany({
+    where: {
+      deleted_at: null,
+    },
+    orderBy: {
+      id: "desc",
+    },
+  });
 };
 
 const createLevel = async (body) => {
-  const result = await query(`INSERT INTO level (level_name) VALUES (?)`, [
-    body.level_name,
-  ]);
-  return result;
+  const level = await prisma.level.create({
+    data: {
+      level_name: body.level_name,
+    },
+  });
+  return { insertId: level.id };
 };
 
 const updateLevelById = async (id, body) => {
-  const result = await query(`UPDATE level SET level_name = ? WHERE id = ?`, [
-    body.level_name,
-    id,
-  ]);
-  return result;
+  try {
+    const level = await prisma.level.updateMany({
+      where: {
+        id: parseInt(id, 10),
+        deleted_at: null,
+      },
+      data: {
+        level_name: body.level_name,
+      },
+    });
+    return { affectedRows: level.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 const deleteLevelById = async (id) => {
-  const result = await query(`UPDATE level SET deleted_at = NOW() WHERE id = ?`, [id]);
-  return result;
+  try {
+    const level = await prisma.level.updateMany({
+      where: {
+        id: parseInt(id, 10),
+        deleted_at: null,
+      },
+      data: {
+        deleted_at: new Date(),
+      },
+    });
+    return { affectedRows: level.count };
+  } catch (error) {
+    return { affectedRows: 0 };
+  }
 };
 
 export default {
@@ -37,3 +71,4 @@ export default {
   deleteLevelById,
   createLevel,
 };
+

@@ -1,0 +1,16 @@
+model TransOrderDetail {
+  id         Int           @id @default(autoincrement())
+  id_order   Int
+  id_service Int
+  qty        Int
+  amount     Decimal?      @db.Decimal(10, 2)
+  notes      String?       @db.Text
+  created_at DateTime?     @default(now()) @db.Timestamp(0)
+  updated_at DateTime?     @default(now()) @db.Timestamp(0)
+  order      TransOrder    @relation(fields: [id_order], references: [id], onDelete: Cascade, map: "fk_detail_order")
+  service    TypeOfService @relation(fields: [id_service], references: [id], map: "fk_detail_service")
+
+  @@index([id_order], map: "fk_detail_order")
+  @@index([id_service], map: "fk_detail_service")
+  @@map("trans_order_detail")
+}
