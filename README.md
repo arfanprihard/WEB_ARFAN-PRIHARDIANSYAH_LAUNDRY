@@ -1,4 +1,5 @@
-# 🧺 Aplikasi Manajemen Laundry (Web App)
+>  **Proyek Sertifikasi / Uji Kompetensi LSP (Lembaga Sertifikasi Profesi)**  
+> Dibuat oleh **Arfan Prihardiansyah** sebagai proyek Uji Kompetensi Sertifikasi Keahlian Pemrograman / Pengembangan Web.
 
 Aplikasi manajemen sistem informasi laundry berbasis web yang dibangun dengan arsitektur **Client-Server**. Aplikasi ini dirancang untuk mempermudah pengelolaan transaksi laundry, pelanggan, jenis layanan, serta manajemen pengguna berdasarkan hak akses (Role / Level).
 
