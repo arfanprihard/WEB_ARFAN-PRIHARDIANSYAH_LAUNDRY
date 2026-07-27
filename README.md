@@ -1,10 +1,10 @@
-# 🧺 Aplikasi Manajemen Laundry (Web App)
+# Aplikasi Manajemen Laundry (Web App)
 
 Aplikasi manajemen sistem informasi laundry berbasis web yang dibangun dengan arsitektur **Client-Server**. Aplikasi ini dirancang untuk mempermudah pengelolaan transaksi laundry, pelanggan, jenis layanan, serta manajemen pengguna berdasarkan hak akses (Role / Level).
 
 ---
 
-## 🚀 Teknologi yang Digunakan
+## Teknologi yang Digunakan
 
 ### **Frontend**
 * **Framework / Library**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
@@ -21,7 +21,7 @@ Aplikasi manajemen sistem informasi laundry berbasis web yang dibangun dengan ar
 
 ---
 
-## 👥 Role & Hak Akses Pengguna
+## Role & Hak Akses Pengguna
 
 Aplikasi ini mendukung multi-role dengan hak akses yang dapat disesuaikan:
 
@@ -31,7 +31,7 @@ Aplikasi ini mendukung multi-role dengan hak akses yang dapat disesuaikan:
 
 ---
 
-## 🔑 Akun Bawaan (Default Seeder)
+## Akun Bawaan (Default Seeder)
 
 Setelah menjalankan seeder database, Anda dapat login menggunakan akun default berikut (Password untuk semua akun: `123`):
 
@@ -43,7 +43,7 @@ Setelah menjalankan seeder database, Anda dapat login menggunakan akun default b
 
 ---
 
-## 🛠️ Panduan Instalasi & Cara Menjalankan
+## Panduan Instalasi & Cara Menjalankan
 
 ### **Prasyarat**
 * Node.js (v18 atau lebih baru)
@@ -121,7 +121,7 @@ Setelah menjalankan seeder database, Anda dapat login menggunakan akun default b
 
 ---
 
-## 📁 Struktur Direktori Projek
+## Struktur Direktori Projek
 
 ```text
 WEB_ARFAN-PRIHARDIANSYAH_LAUNDRY/
@@ -152,6 +152,6 @@ WEB_ARFAN-PRIHARDIANSYAH_LAUNDRY/
 
 ---
 
-## 📄 Lisensi
+## Lisensi
 
 Proyek ini dibuat untuk keperluan pengembangan web manajemen laundry. Silakan disesuaikan dengan kebutuhan Anda.
