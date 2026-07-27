@@ -1,3 +1,5 @@
+# Aplikasi Manajemen Laundry (Web App) - Proyek Uji Kompetensi LSP
+
 >  **Proyek Sertifikasi / Uji Kompetensi LSP (Lembaga Sertifikasi Profesi)**  
 > Dibuat oleh **Arfan Prihardiansyah** sebagai proyek Uji Kompetensi Sertifikasi Keahlian Pemrograman / Pengembangan Web.
 
@@ -153,6 +155,6 @@ WEB_ARFAN-PRIHARDIANSYAH_LAUNDRY/
 
 ---
 
-## 📄 Lisensi
+## Lisensi
 
-Proyek ini dikembangkan oleh **Arfan Prihardiansyah** untuk memenuhi standar Uji Kompetensi / Sertifikasi **LSP (Lembaga Sertifikasi Profesi)** bidang Pengembangan Web & Perangkat Lunak. Silakan disesuaikan dengan kebutuhan Anda.
+Proyek ini dikembangkan oleh **Arfan Prihardiansyah** untuk memenuhi standar Uji Kompetensi / Sertifikasi **LSP (Lembaga Sertifikasi Profesi)** bidang Pengembangan Web
